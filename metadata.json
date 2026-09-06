@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Scientific Calculator",
+  "description": "Advanced scientific and graphing calculator with sleek dark mode, calculation history, and unit conversion.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
