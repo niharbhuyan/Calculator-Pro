@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Delete, RotateCcw } from 'lucide-react';
+import { Copy, Check, Delete, Clock } from 'lucide-react';
 import { AngleMode } from '../types';
 
 interface DisplaySectionProps {
@@ -11,6 +11,8 @@ interface DisplaySectionProps {
   onClear: () => void;
   onBackspace: () => void;
   errorMessage?: string;
+  onOpenHistory?: () => void;
+  historyCount?: number;
 }
 
 export const DisplaySection: React.FC<DisplaySectionProps> = ({
@@ -22,6 +24,8 @@ export const DisplaySection: React.FC<DisplaySectionProps> = ({
   onClear,
   onBackspace,
   errorMessage,
+  onOpenHistory,
+  historyCount,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -69,7 +73,24 @@ export const DisplaySection: React.FC<DisplaySectionProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* History Shortcut */}
+          {onOpenHistory && (
+            <button
+              id="btn-quick-history"
+              onClick={onOpenHistory}
+              title="View & Export Calculation History"
+              className="p-1 rounded text-neutral-400 hover:text-orange-400 hover:bg-[#202020] transition-colors flex items-center gap-1"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              {historyCount !== undefined && historyCount > 0 && (
+                <span className="text-[10px] font-mono text-orange-400 font-bold">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Copy Result */}
           <button
             id="btn-copy-result"

@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   Crosshair,
+  Camera,
 } from 'lucide-react';
 import { GraphFunction, GraphWindow, AngleMode } from '../types';
 import { compileGraphFunction } from '../utils/evaluator';
@@ -566,6 +567,21 @@ export const GraphingCalculator: React.FC<GraphingCalculatorProps> = ({ angleMod
             }`}
           >
             <Crosshair className="w-4 h-4" />
+          </button>
+          <button
+            id="btn-graph-export"
+            onClick={() => {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              const link = document.createElement('a');
+              link.download = `graph_${Date.now()}.png`;
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            }}
+            title="Export Graph as PNG Image"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors"
+          >
+            <Camera className="w-4 h-4" />
           </button>
         </div>
       </div>

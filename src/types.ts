@@ -1,4 +1,12 @@
-export type CalculatorMode = 'scientific' | 'graphing' | 'converter' | 'history';
+export type CalculatorMode =
+  | 'scientific'
+  | 'graphing'
+  | 'programmer'
+  | 'matrix'
+  | 'statistics'
+  | 'financial'
+  | 'converter'
+  | 'history';
 
 export type AngleMode = 'RAD' | 'DEG';
 
@@ -25,7 +33,14 @@ export interface GraphWindow {
   yMax: number;
 }
 
-export type UnitCategory = 'length' | 'temperature' | 'weight' | 'speed' | 'area' | 'volume' | 'data';
+export type UnitCategory =
+  | 'length'
+  | 'temperature'
+  | 'weight'
+  | 'speed'
+  | 'area'
+  | 'volume'
+  | 'data';
 
 export interface UnitDefinition {
   id: string;
@@ -34,3 +49,33 @@ export interface UnitDefinition {
   toBase: (val: number) => number;
   fromBase: (val: number) => number;
 }
+
+export interface ScientificConstant {
+  id: string;
+  symbol: string;
+  name: string;
+  category: 'Physics' | 'Chemistry' | 'Universal' | 'Astronomy';
+  value: number;
+  unit: string;
+}
+
+export type WordSize = 64 | 32 | 16 | 8;
+export type NumberBase = 'HEX' | 'DEC' | 'OCT' | 'BIN';
+
+export interface StatisticsResult {
+  count: number;
+  sum: number;
+  mean: number;
+  median: number;
+  modes: number[];
+  stdDevPop: number;
+  stdDevSample: number;
+  variance: number;
+  min: number;
+  max: number;
+  range: number;
+  q1: number;
+  q3: number;
+  iqr: number;
+}
+

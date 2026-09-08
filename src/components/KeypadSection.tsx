@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playKeySound, triggerHapticVibration } from '../utils/audio';
 
 interface KeypadSectionProps {
   onInput: (char: string) => void;
@@ -7,6 +8,9 @@ interface KeypadSectionProps {
   onCalculate: () => void;
   onMemoryAction: (action: 'MC' | 'MR' | 'M+' | 'M-') => void;
   hasMemory: boolean;
+  onOpenConstants?: () => void;
+  onOpenStepSolver?: () => void;
+  soundEnabled?: boolean;
 }
 
 export const KeypadSection: React.FC<KeypadSectionProps> = ({
@@ -16,30 +20,32 @@ export const KeypadSection: React.FC<KeypadSectionProps> = ({
   onCalculate,
   onMemoryAction,
   hasMemory,
+  onOpenConstants,
+  onOpenStepSolver,
+  soundEnabled = true,
 }) => {
   const [isSecond, setIsSecond] = useState(false);
   const [showFullSci, setShowFullSci] = useState(true);
 
-  // Helper to trigger haptic if supported
-  const triggerHaptic = () => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(10);
+  const handlePress = (
+    handler: () => void,
+    soundType: 'num' | 'op' | 'func' | 'equals' | 'delete' = 'num'
+  ) => {
+    triggerHapticVibration(10);
+    if (soundEnabled) {
+      playKeySound(soundType);
     }
-  };
-
-  const handlePress = (handler: () => void) => {
-    triggerHaptic();
     handler();
   };
 
   return (
     <div className="w-full bg-[#0E0E0E] p-1 sm:p-2 flex flex-col gap-1 select-none flex-1 justify-between">
-      {/* Memory & Quick Scientific Toggle Bar */}
-      <div className="grid grid-cols-6 gap-1 px-0.5 pt-0.5">
+      {/* Memory & Quick Tools Bar */}
+      <div className="grid grid-cols-7 gap-1 px-0.5 pt-0.5">
         <button
           id="btn-mem-mc"
           disabled={!hasMemory}
-          onClick={() => handlePress(() => onMemoryAction('MC'))}
+          onClick={() => handlePress(() => onMemoryAction('MC'), 'func')}
           className={`h-7 rounded text-[11px] font-mono uppercase tracking-wider transition-colors ${
             hasMemory
               ? 'bg-[#181818] text-neutral-300 hover:bg-[#222222]'
@@ -51,7 +57,7 @@ export const KeypadSection: React.FC<KeypadSectionProps> = ({
         <button
           id="btn-mem-mr"
           disabled={!hasMemory}
-          onClick={() => handlePress(() => onMemoryAction('MR'))}
+          onClick={() => handlePress(() => onMemoryAction('MR'), 'func')}
           className={`h-7 rounded text-[11px] font-mono uppercase tracking-wider transition-colors ${
             hasMemory
               ? 'bg-[#181818] text-orange-400 font-bold hover:bg-[#222222]'
@@ -62,21 +68,21 @@ export const KeypadSection: React.FC<KeypadSectionProps> = ({
         </button>
         <button
           id="btn-mem-mplus"
-          onClick={() => handlePress(() => onMemoryAction('M+'))}
+          onClick={() => handlePress(() => onMemoryAction('M+'), 'func')}
           className="h-7 rounded text-[11px] font-mono uppercase tracking-wider bg-[#181818] text-neutral-300 hover:bg-[#222222] transition-colors"
         >
           M+
         </button>
         <button
           id="btn-mem-mminus"
-          onClick={() => handlePress(() => onMemoryAction('M-'))}
+          onClick={() => handlePress(() => onMemoryAction('M-'), 'func')}
           className="h-7 rounded text-[11px] font-mono uppercase tracking-wider bg-[#181818] text-neutral-300 hover:bg-[#222222] transition-colors"
         >
           M-
         </button>
         <button
           id="btn-toggle-2nd"
-          onClick={() => handlePress(() => setIsSecond(!isSecond))}
+          onClick={() => handlePress(() => setIsSecond(!isSecond), 'func')}
           className={`h-7 rounded text-[11px] font-mono uppercase tracking-wider font-bold transition-all ${
             isSecond
               ? 'bg-orange-500 text-black shadow-sm'
@@ -86,11 +92,20 @@ export const KeypadSection: React.FC<KeypadSectionProps> = ({
           2nd
         </button>
         <button
-          id="btn-toggle-sci-view"
-          onClick={() => handlePress(() => setShowFullSci(!showFullSci))}
-          className="h-7 rounded text-[11px] font-mono uppercase tracking-wider bg-[#181818] text-neutral-400 hover:text-white transition-colors"
+          id="btn-constants"
+          onClick={() => handlePress(() => onOpenConstants?.(), 'func')}
+          className="h-7 rounded text-[11px] font-mono uppercase tracking-wider bg-[#181818] text-orange-400 font-bold hover:bg-[#222222] transition-colors"
+          title="Physical Constants Library"
         >
-          {showFullSci ? 'HYP' : 'SCI'}
+          CONST
+        </button>
+        <button
+          id="btn-step-solver"
+          onClick={() => handlePress(() => onOpenStepSolver?.(), 'func')}
+          className="h-7 rounded text-[11px] font-mono uppercase tracking-wider bg-orange-500/20 text-orange-400 font-bold hover:bg-orange-500/30 transition-colors"
+          title="Step-by-step explainer & calculus"
+        >
+          SOLVE
         </button>
       </div>
 
@@ -335,28 +350,28 @@ export const KeypadSection: React.FC<KeypadSectionProps> = ({
         {/* Row 5: DEL / 0, ., Ans, = */}
         <button
           id="btn-del"
-          onClick={() => handlePress(onDelete)}
+          onClick={() => handlePress(onDelete, 'delete')}
           className="h-13 sm:h-14 rounded-xl bg-[#161616] hover:bg-[#222222] text-orange-400 font-bold text-lg sm:text-xl transition-all active:scale-95"
         >
           DEL
         </button>
         <button
           id="btn-num-0"
-          onClick={() => handlePress(() => onInput('0'))}
+          onClick={() => handlePress(() => onInput('0'), 'num')}
           className="h-13 sm:h-14 rounded-xl bg-[#202020] hover:bg-[#2B2B2B] text-white font-black text-2xl sm:text-3xl transition-all active:scale-95"
         >
           0
         </button>
         <button
           id="btn-num-dot"
-          onClick={() => handlePress(() => onInput('.'))}
+          onClick={() => handlePress(() => onInput('.'), 'num')}
           className="h-13 sm:h-14 rounded-xl bg-[#202020] hover:bg-[#2B2B2B] text-white font-black text-2xl sm:text-3xl transition-all active:scale-95"
         >
           .
         </button>
         <button
           id="btn-op-equals"
-          onClick={() => handlePress(onCalculate)}
+          onClick={() => handlePress(onCalculate, 'equals')}
           className="h-13 sm:h-14 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-black text-2xl sm:text-3xl transition-all active:scale-95 shadow-md shadow-orange-500/20"
         >
           =

@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { Trash2, Clock, Search, ArrowUpRight, Copy, Check } from 'lucide-react';
+import {
+  Trash2,
+  Clock,
+  Search,
+  ArrowUpRight,
+  Copy,
+  Check,
+  Download,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { HistoryItem } from '../types';
+import { ExportHistoryModal } from './ExportHistoryModal';
+import { generateHistoryCSV, downloadCSVFile } from '../utils/csvExport';
 
 interface HistoryDrawerProps {
   history: HistoryItem[];
@@ -8,6 +19,7 @@ interface HistoryDrawerProps {
   onSelectExpression: (expression: string) => void;
   onClearHistory: () => void;
   onDeleteItem: (id: string) => void;
+  onImportHistory?: (items: HistoryItem[], mode: 'append' | 'replace') => void;
 }
 
 export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
@@ -16,10 +28,13 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   onSelectExpression,
   onClearHistory,
   onDeleteItem,
+  onImportHistory,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [quickDownloadSuccess, setQuickDownloadSuccess] = useState(false);
 
   const filteredHistory = history.filter(
     (item) =>
@@ -40,10 +55,18 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const handleQuickDownload = () => {
+    if (history.length === 0) return;
+    const csvContent = generateHistoryCSV(history);
+    downloadCSVFile(csvContent);
+    setQuickDownloadSuccess(true);
+    setTimeout(() => setQuickDownloadSuccess(false), 2000);
+  };
+
   return (
     <div className="w-full flex-1 flex flex-col bg-[#0A0A0A] select-none overflow-hidden">
       {/* Search & Actions Header */}
-      <div className="px-4 py-3 bg-[#0F0F0F] border-b border-[#1A1A1A] flex flex-col gap-2">
+      <div className="px-4 py-3 bg-[#0F0F0F] border-b border-[#1A1A1A] flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-orange-500" />
@@ -55,16 +78,45 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
             </span>
           </div>
 
-          {history.length > 0 && !showClearConfirm && (
+          <div className="flex items-center gap-1.5">
+            {/* Export CSV Modal Trigger Button */}
             <button
-              id="btn-clear-history-prompt"
-              onClick={() => setShowClearConfirm(true)}
-              className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors flex items-center gap-1"
+              id="btn-open-export-modal"
+              onClick={() => setShowExportModal(true)}
+              title="Export CSV and backup options"
+              className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 px-2.5 py-1 rounded-lg shadow-sm"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear All</span>
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Export CSV</span>
             </button>
-          )}
+
+            {/* Quick 1-click Download */}
+            {history.length > 0 && (
+              <button
+                id="btn-quick-download-csv"
+                onClick={handleQuickDownload}
+                title="Quick download CSV file"
+                className="p-1.5 text-neutral-400 hover:text-white bg-[#1A1A1A] hover:bg-[#252525] border border-[#2A2A2A] rounded-lg transition-colors"
+              >
+                {quickDownloadSuccess ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
+
+            {history.length > 0 && !showClearConfirm && (
+              <button
+                id="btn-clear-history-prompt"
+                onClick={() => setShowClearConfirm(true)}
+                title="Clear all calculations"
+                className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-[#1A1A1A]"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           {showClearConfirm && (
             <div className="flex items-center gap-2">
@@ -119,6 +171,15 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                 ? 'Try a different search term.'
                 : 'Perform calculations and press = to see them saved here permanently.'}
             </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="mt-4 px-3 py-1.5 rounded-lg bg-[#1A1A1A] hover:bg-[#222222] border border-[#2A2A2A] text-xs font-semibold text-orange-400 flex items-center gap-1.5 transition-colors"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Export / Restore CSV Backup</span>
+              </button>
+            )}
           </div>
         ) : (
           filteredHistory.map((item) => (
@@ -195,6 +256,14 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
           ))
         )}
       </div>
+
+      {/* Export & Backup CSV Modal */}
+      <ExportHistoryModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        history={history}
+        onImportHistory={onImportHistory}
+      />
     </div>
   );
 };
